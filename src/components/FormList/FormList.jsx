@@ -1,30 +1,50 @@
 import {useState} from 'react';
 import { Form, Label, Input, Button, Span } from './FormList.styled';
+import { toast } from 'react-toastify';
+import { notifyOptions } from '../notifyOptions/notifyOptions';
+import { useSelector, useDispatch } from 'react-redux';
+import { getVisibleContacts } from '../../redux/selectors';
+import { addContact } from '../../redux/contactsSlice';
 
-const FormList = ({ onSubmit }) => {
+const FormList = () => {
 const [name, setName] = useState('');
 const [number, setNumber] = useState('');
 
- const handleChange = e => {
-    const { value, name } = e.target;
-    switch (name) {
-      case 'name':
-        setName(value);
-        break;
-      case 'number':
-        setNumber(value);
-        break;
-      default:
-        return;
-    }
-  };
+const contacts = useSelector(getVisibleContacts);
+const dispatch = useDispatch();
 
-  const handleSubmit = e => {
-    e.preventDefault();
-    onSubmit({name, number});
-    setName('');
-    setNumber('');
-  };
+const handleSubmit = event => {
+  event.preventDefault();
+
+  const normalizedName = name.toLowerCase();
+  const isAdded = contacts.find(
+    el => el.name.toLowerCase() === normalizedName
+  );
+
+  if (isAdded) {
+    toast.error(`${name}: is already in contacts`, notifyOptions);
+    return;
+  }
+
+  dispatch(addContact({ name, number }));
+  setName('');
+  setNumber('');
+};
+
+const handleChange = e => {
+  const { name, value } = e.target;
+  switch (name) {
+    case 'name':
+      setName(value);
+      break;
+    case 'number':
+      setNumber(value);
+      break;
+    default:
+      return;
+  }
+};
+
 
     return (
       <Form onSubmit={handleSubmit} autoComplete="off">
